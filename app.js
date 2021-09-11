@@ -3,7 +3,7 @@ const helmet = require('helmet');
 const mongoose = require('mongoose');
 const userRouter = require('./routes/users');
 const moviesRouter = require('./routes/movies');
-const createUser = require('./routes/users');
+const createUser = require('./controllers/users');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -11,8 +11,6 @@ const app = express();
 mongoose.connect('mongodb://localhost:27017/bitfilmsdb', {
   useUnifiedTopology: true,
   useNewUrlParser: true,
-  useCreateIndex: true,
-  useFindAndModify: false,
 });
 
 app.post('/signup', createUser);
