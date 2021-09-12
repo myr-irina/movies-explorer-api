@@ -2,11 +2,10 @@ const Movie = require('../models/movie');
 const ForbiddenError = require('../errors/forbidden-err');
 const BadRequestError = require('../errors/bad-request-err');
 const NotFoundError = require('../errors/not-found-err');
+const ErrorMessage = require('../utils/err-messages');
 
 module.exports.getMovies = (req, res, next) => {
-  const owner = req.user._id;
-
-  Movie.find({ owner })
+  Movie.find({})
     .then((movies) => res.status(200).send(movies))
     .catch(next);
 };
@@ -41,46 +40,31 @@ module.exports.createMovie = (req, res, next) => {
     movieId,
     owner,
   })
-    .then((movie) => res.status(200).send({
-      _id: movie._id,
-      country: movie.country,
-      director: movie.director,
-      duration: movie.duration,
-      year: movie.year,
-      description: movie.description,
-      image: movie.image,
-      trailer: movie.trailer,
-      nameRU: movie.nameRU,
-      nameEN: movie.nameEN,
-      thumbnail: movie.thumbnail,
-      movieId: movie.movieId,
-    }))
+    .then((movie) => res.status(200).send(movie))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(
-          new BadRequestError('Переданы некорректные данные при создании карточки.'),
-        );
+        return next(new BadRequestError(ErrorMessage.BAD_REQUEST));
       }
       return next(err);
     });
 };
 
 module.exports.deleteMovie = (req, res, next) => {
-  Movie.findById(req.params.id)
+  Movie.findById(req.params.movieId)
     .then((movie) => {
-      if (req.user._id !== movie.owner.toString()) {
-        return next(new ForbiddenError('Чужой фильм нельзя удалить.'));
+      if (JSON.stringify(req.user._id) !== JSON.stringify(movie.owner)) {
+        return next(new ForbiddenError(ErrorMessage.FORBIDDEN));
       }
       return Movie.deleteOne(movie).then(() => res
         .status(200)
-        .send({ message: 'Фильм успешно удален!' }));
+        .send(ErrorMessage.OK));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return next(new BadRequestError('Ошибка в запросе.'));
+        return next(new BadRequestError(ErrorMessage.BAD_REQUEST));
       }
       if (err.message === 'Error') {
-        return next(new NotFoundError('Карточка с указанным id не найдена.'));
+        return next(new NotFoundError(ErrorMessage.NOT_FOUND));
       }
       return next(err);
     });
