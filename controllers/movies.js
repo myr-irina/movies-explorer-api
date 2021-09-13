@@ -67,5 +67,6 @@ module.exports.deleteMovie = (req, res, next) => {
         return next(new NotFoundError(ErrorMessage.NOT_FOUND));
       }
       return next(err);
-    });
+    })
+    .catch(next);
 };

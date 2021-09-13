@@ -63,7 +63,7 @@ module.exports.createUser = (req, res, next) => {
         next(new ConflictError(ErrorMessage.CONFLICT));
       }
       // хэшируем пароль
-      bcrypt
+      return bcrypt
         .hash(password, 10)
         .then((hash) => User.create({
           email,
@@ -83,7 +83,8 @@ module.exports.createUser = (req, res, next) => {
           }
           return next(err);
         });
-    });
+    })
+    .catch(next);
 };
 
 module.exports.login = (req, res, next) => {

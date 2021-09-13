@@ -16,7 +16,7 @@ router.use(auth);
 
 router.use('/users', userRouter);
 router.use('/movies', moviesRouter);
-router.use('*', (req, res, next) => {
+router.all('*', (req, res, next) => {
   next(new NotFoundError('Запрашиваемый ресурс не найден.'));
 });
 

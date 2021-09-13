@@ -32,7 +32,7 @@ function toJSON() {
 
 userSchema.methods.toJSON = toJSON;
 
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function (email, password, next) {
   return this.findOne({ email })
     .select('+password')
     .then((user) => {
@@ -45,10 +45,10 @@ userSchema.statics.findUserByCredentials = function (email, password) {
         if (!matched) {
           return Promise.reject(new Error('Неправильные почта или пароль'));
         }
-
         return user;
       });
-    });
+    })
+    .catch(next);
 };
 
 module.exports = mongoose.model('user', userSchema);

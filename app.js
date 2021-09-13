@@ -15,6 +15,8 @@ const app = express();
 const router = require('./routes/index');
 
 mongoose.connect(MONGO_URL, { useNewUrlParser: true, useUnifiedTopology: true });
+
+app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true,
@@ -22,14 +24,11 @@ app.use(express.urlencoded({
 app.use(cookieParser());
 app.use(helmet());
 app.use(limiter);
-app.use(requestLogger);
-
 app.use(router);
-
 app.use(errorLogger);
-
 app.use(errors());
 app.use(errorHandler);
+
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
