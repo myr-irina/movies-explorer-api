@@ -38,7 +38,7 @@ module.exports.updateUser = (req, res, next) => {
           new BadRequestError(ErrorMessage.BAD_REQUEST),
         );
       }
-      if (err.name === 'MongoError' && err.code === 11000) {
+      if (err.name === 'MongoServerError' && err.code === 11000) {
         return next(
           new ConflictError(ErrorMessage.CONFLICT),
         );
