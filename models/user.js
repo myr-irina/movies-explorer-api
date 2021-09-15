@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const isEmail = require('validator/lib/isEmail');
+const StatusMessage = require('../utils/err-messages');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -32,18 +33,18 @@ function toJSON() {
 
 userSchema.methods.toJSON = toJSON;
 
-userSchema.statics.findUserByCredentials = function (email, password, next) {
+userSchema.statics.findUserByCredentials = function findUser(email, password, next) {
   return this.findOne({ email })
     .select('+password')
     .then((user) => {
       // не нашёлся — отклоняем промис
       if (!user) {
-        return Promise.reject(new Error('Такого пользователя не существует'));
+        return Promise.reject(new Error(StatusMessage.INVALID_CREDENTIALS));
       }
       // нашёлся — сравниваем хеши
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
-          return Promise.reject(new Error('Неправильные почта или пароль'));
+          return Promise.reject(new Error(StatusMessage.INVALID_CREDENTIALS));
         }
         return user;
       });

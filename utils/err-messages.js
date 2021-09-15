@@ -7,4 +7,5 @@ module.exports = {
   NOT_FOUND: 'Объект не найден',
   CONFLICT: 'Пользователь с таким email уже cуществует',
   DEFAULT: 'На сервере произошла ошибка',
+  INVALID_CREDENTIALS: 'Неправильные почта или пароль',
 };

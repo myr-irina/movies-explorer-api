@@ -54,6 +54,9 @@ module.exports.createMovie = (req, res, next) => {
 module.exports.deleteMovie = (req, res, next) => {
   Movie.findById(req.params.movieId)
     .then((movie) => {
+      if (!movie) {
+        return next(new NotFoundError(ErrorMessage.NOT_FOUND));
+      }
       if (JSON.stringify(req.user._id) !== JSON.stringify(movie.owner)) {
         return next(new ForbiddenError(ErrorMessage.FORBIDDEN));
       }
@@ -64,9 +67,6 @@ module.exports.deleteMovie = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         return next(new BadRequestError(ErrorMessage.BAD_REQUEST));
-      }
-      if (err.message === 'Error') {
-        return next(new NotFoundError(ErrorMessage.NOT_FOUND));
       }
       return next(err);
     })

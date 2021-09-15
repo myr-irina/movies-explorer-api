@@ -12,9 +12,6 @@ const UnauthorizedError = require('../errors/unauthorized-err');
 module.exports.getCurrentUser = (req, res, next) => User.findById(req.user._id)
   .then((user) => res.status(200).send(user))
   .catch((err) => {
-    if (err.name === 'CastError') {
-      return next(new BadRequestError(ErrorMessage.BAD_REQUEST));
-    }
     if (err.message === 'NotFound') {
       return next(
         new NotFoundError(ErrorMessage.NOT_FOUND),
@@ -48,51 +45,31 @@ module.exports.updateUser = (req, res, next) => {
 };
 
 module.exports.createUser = (req, res, next) => {
-  // получим из тела запроса данные пользователя
-  const {
-    email, password, name,
-  } = req.body;
-
-  if (!email || !password) {
-    next(new BadRequestError(ErrorMessage.BAD_REQUEST));
-  }
-
-  User.findOne({ email })
-    .then((usr) => {
-      if (usr) {
-        next(new ConflictError(ErrorMessage.CONFLICT));
+  bcrypt.hash(req.body.password, 10)
+    .then((hash) => User.create({
+      email: req.body.email,
+      password: hash,
+      name: req.body.name,
+    }))
+    .then((user) => res.status(201).send(user.toJSON()))
+    .catch((err) => {
+      console.log(err);
+      if (err.name === 'ValidationError') {
+        return next(
+          new BadRequestError(ErrorMessage.BAD_REQUEST),
+        );
+      } if (err.name === 'MongoServerError' && err.code === 11000) {
+        return next(
+          new ConflictError(ErrorMessage.CONFLICT),
+        );
       }
-      // хэшируем пароль
-      return bcrypt
-        .hash(password, 10)
-        .then((hash) => User.create({
-          email,
-          password: hash,
-          name,
-        }))
-        .then((user) => res.status(201).send(user.toJSON()))
-        .catch((err) => {
-          if (err.name === 'ValidationError') {
-            return next(
-              new BadRequestError(ErrorMessage.BAD_REQUEST),
-            );
-          } if (err.name === 'MongoError' && err.code === 11000) {
-            return next(
-              new ConflictError(ErrorMessage.CONFLICT),
-            );
-          }
-          return next(err);
-        });
+      return next(err);
     })
     .catch(next);
 };
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-
-  if (!email || !password) {
-    return next(new BadRequestError(ErrorMessage.BAD_REQUEST));
-  }
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -107,7 +84,7 @@ module.exports.login = (req, res, next) => {
         })
         .send({ token });
     })
-    .catch(() => next(new UnauthorizedError(ErrorMessage.UNAUTHORIZED)));
+    .catch((err) => next(new UnauthorizedError(`${err.message}`)));
 };
 
 module.exports.signOut = (req, res) => {
