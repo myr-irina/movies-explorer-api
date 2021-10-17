@@ -22,7 +22,7 @@ app.use(
       'https://films-express.nomoredomains.club',
       'http://films-express.nomoredomains.club',
     ],
-    methods: ['GET', 'PUT', 'POST', 'DELETE'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true,
   }),
